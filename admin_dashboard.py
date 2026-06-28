@@ -471,8 +471,30 @@ if len(users_df) > 0:
         )
 
 
+
+    if st.button(
+        "Delete User",
+        key="delete_user_btn"
+    ):
+
+        cursor.execute(
+            """
+            DELETE FROM Users
+            WHERE Username=?
+            """,
+            (selected_user,)
+        )
+
+        conn.commit()
+
+        st.warning(
+            "User Deleted 🗑️"
+        )
+
+
+
 # =====================
-# RESET PASSWORD
+# RESET EMPLOYEE PASSWORD
 # =====================
 
 st.divider()
@@ -480,7 +502,7 @@ st.divider()
 st.subheader("🔐 Reset Employee Password")
 
 
-employee_users = pd.read_sql(
+employees_users = pd.read_sql(
     """
     SELECT Username
     FROM Users
@@ -490,18 +512,18 @@ employee_users = pd.read_sql(
 )
 
 
-if len(employee_users) > 0:
+if len(employees_users) > 0:
 
     reset_user = st.selectbox(
         "Select Employee Username",
-        employee_users["Username"],
-        key="reset_user"
+        employees_users["Username"],
+        key="reset_employee"
     )
 
 
     if st.button(
         "Reset Password",
-        key="reset_btn"
+        key="reset_password"
     ):
 
         cursor.execute(
@@ -516,15 +538,18 @@ if len(employee_users) > 0:
             )
         )
 
+
         conn.commit()
 
+
         st.success(
-            f"{reset_user} password reset to 1234 ✅"
+            "Password reset to 1234 ✅"
         )
 
 
+
 # =====================
-# CLOSE CONNECTION
+# CLOSE DATABASE
 # =====================
 
 conn.close()
