@@ -1,19 +1,10 @@
 import streamlit as st
-import hashlib
 from database import get_connection
-
-
-def hash_password(password):
-    return hashlib.sha256(
-        password.encode()
-    ).hexdigest()
-
 
 
 def login(username, password):
 
     conn = get_connection()
-
     cursor = conn.cursor()
 
 
@@ -25,14 +16,13 @@ def login(username, password):
         AND Password=?
         """,
         (
-            username,
-            hash_password(password)
+            username.strip(),
+            password.strip()
         )
     )
 
 
     user = cursor.fetchone()
-
 
     conn.close()
 
