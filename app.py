@@ -3,6 +3,8 @@ import streamlit as st
 from auth import login, logout
 from employee import employee_dashboard
 from admin_dashboard import admin_dashboard
+from database import get_connection
+
 
 st.set_page_config(
     page_title="Sales Management System",
