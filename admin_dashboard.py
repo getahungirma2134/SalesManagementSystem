@@ -413,65 +413,62 @@ def admin_dashboard():
 
 
     # =====================
-# RESET EMPLOYEE PASSWORD
-# =====================
+    # RESET EMPLOYEE PASSWORD
+    # =====================
 
-st.divider()
+    st.divider()
 
-st.subheader("🔐 Reset Employee Password")
-
-
-users = pd.read_sql(
-    """
-    SELECT EmployeeID, Username
-    FROM Users
-    WHERE Role='Employee'
-    """,
-    conn
-)
+    st.subheader("🔐 Reset Employee Password")
 
 
-if len(users) > 0:
-
-    selected_username = st.selectbox(
-        "Select Employee Username",
-        users["Username"],
-        key="reset_username"
+    users = pd.read_sql(
+        """
+        SELECT EmployeeID, Username
+        FROM Users
+        WHERE Role='Employee'
+        """,
+        conn
     )
 
 
-    reset_id = users[
-        users["Username"] == selected_username
-    ]["EmployeeID"].iloc[0]
+    if len(users) > 0:
+
+        selected_username = st.selectbox(
+            "Select Employee Username",
+            users["Username"],
+            key="reset_username"
+        )
 
 
-    if st.button(
-        "Reset Password",
-        key="reset_password_btn"
-    ):
-
-        default_password = "1234"
+        reset_id = users[
+            users["Username"] == selected_username
+        ]["EmployeeID"].iloc[0]
 
 
-        cursor.execute(
-            """
-            UPDATE Users
-            SET Password=?
-            WHERE EmployeeID=?
-            """,
-            (
-                default_password,
-                reset_id
+        if st.button(
+            "Reset Password",
+            key="reset_password_btn"
+        ):
+
+            cursor.execute(
+                """
+                UPDATE Users
+                SET Password=?
+                WHERE EmployeeID=?
+                """,
+                (
+                    "1234",
+                    reset_id
+                )
             )
-        )
 
 
-        conn.commit()
+            conn.commit()
 
 
-        st.success(
-            f"{selected_username} password reset to 1234 ✅"
-        )
+            st.success(
+                f"{selected_username} password reset to 1234 ✅"
+            )
 
 
 
