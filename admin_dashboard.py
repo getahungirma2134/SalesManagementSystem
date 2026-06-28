@@ -413,62 +413,57 @@ def admin_dashboard():
 
 
     # =====================
-    # RESET EMPLOYEE PASSWORD
-    # =====================
+# RESET EMPLOYEE PASSWORD
+# =====================
 
-    st.divider()
+st.divider()
 
-    st.subheader("🔐 Reset Employee Password")
+st.subheader("🔐 Reset Employee Password")
 
 
-    users = pd.read_sql(
-        """
-        SELECT EmployeeID, Username
-        FROM Users
-        WHERE Role='Employee'
-        """,
-        conn
+users = pd.read_sql(
+    """
+    SELECT Username
+    FROM Users
+    WHERE Role='Employee'
+    """,
+    conn
+)
+
+
+if len(users) > 0:
+
+    selected_username = st.selectbox(
+        "Select Employee Username",
+        users["Username"],
+        key="reset_username"
     )
 
 
-    if len(users) > 0:
+    if st.button(
+        "Reset Password",
+        key="reset_password_btn"
+    ):
 
-        selected_username = st.selectbox(
-            "Select Employee Username",
-            users["Username"],
-            key="reset_username"
+        cursor.execute(
+            """
+            UPDATE Users
+            SET Password=?
+            WHERE Username=?
+            """,
+            (
+                "1234",
+                selected_username
+            )
         )
 
 
-        reset_id = users[
-            users["Username"] == selected_username
-        ]["EmployeeID"].iloc[0]
+        conn.commit()
 
 
-        if st.button(
-            "Reset Password",
-            key="reset_password_btn"
-        ):
-
-            cursor.execute(
-                """
-                UPDATE Users
-                SET Password=?
-                WHERE EmployeeID=?
-                """,
-                (
-                    "1234",
-                    reset_id
-                )
-            )
-
-
-            conn.commit()
-
-
-            st.success(
-                f"{selected_username} password reset to 1234 ✅"
-            )
+        st.success(
+            f"{selected_username} password reset to 1234 ✅"
+        )
 
 
 
