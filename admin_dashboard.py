@@ -366,7 +366,7 @@ def admin_dashboard():
 
 
 
-        # =====================
+    # =====================
     # DELETE EMPLOYEE
     # =====================
 
@@ -410,9 +410,92 @@ def admin_dashboard():
                 "Employee Deleted 🗑️"
             )
 
+# =====================
+# USER MANAGEMENT
+# =====================
+
+st.divider()
+
+st.subheader("👥 User Management")
 
 
-    # =====================
+users_df = pd.read_sql(
+    """
+    SELECT Username, Role, EmployeeID
+    FROM Users
+    """,
+    conn
+)
+
+
+st.dataframe(users_df)
+
+
+
+if len(users_df) > 0:
+
+    selected_user = st.selectbox(
+        "Select User",
+        users_df["Username"],
+        key="manage_user"
+    )
+
+
+    new_role = st.selectbox(
+        "Change Role",
+        ["Admin", "Employee"],
+        key="change_role"
+    )
+
+
+    if st.button(
+        "Update Role",
+        key="update_role_btn"
+    ):
+
+        cursor.execute(
+            """
+            UPDATE Users
+            SET Role=?
+            WHERE Username=?
+            """,
+            (
+                new_role,
+                selected_user
+            )
+        )
+
+        conn.commit()
+
+        st.success(
+            f"{selected_user} role updated ✅"
+        )
+
+
+
+    if st.button(
+        "Delete User",
+        key="delete_user_btn"
+    ):
+
+        cursor.execute(
+            """
+            DELETE FROM Users
+            WHERE Username=?
+            """,
+            (selected_user,)
+        )
+
+
+        conn.commit()
+
+
+        st.warning(
+            f"{selected_user} deleted 🗑️"
+        )
+
+
+        # =====================
     # RESET EMPLOYEE PASSWORD
     # =====================
 
@@ -464,5 +547,8 @@ def admin_dashboard():
             )
 
 
+# =====================
+# CLOSE DATABASE
+# =====================
 
-    conn.close()
+conn.close()
