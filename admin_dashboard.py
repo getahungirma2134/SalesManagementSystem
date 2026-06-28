@@ -2,6 +2,7 @@ import streamlit as st
 import pandas as pd
 import datetime
 import io
+from reportlab.platypus import SimpleDocTemplate, Table
 from database import get_connection
 
 
@@ -129,7 +130,7 @@ def admin_dashboard():
 
 
 
-        # =====================
+    # =====================
     # SALES FILTER
     # =====================
 
@@ -194,7 +195,7 @@ def admin_dashboard():
         "sales.csv",
         "text/csv"
     )
-    # =====================
+        # =====================
     # EXPORT SALES EXCEL
     # =====================
 
@@ -213,11 +214,53 @@ def admin_dashboard():
                 sheet_name="Sales"
             )
 
+
         st.download_button(
             label="📥 Download Sales Excel",
             data=buffer.getvalue(),
             file_name="sales_report.xlsx",
             mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+        )
+
+
+        st.download_button(
+            label="📄 Download Sales PDF",
+            data=sales.to_csv(index=False),
+            file_name="sales_report.pdf",
+            mime="application/pdf"
+        )
+
+
+    # =====================
+    # PDF EXPORT
+    # =====================
+
+    if len(sales) > 0:
+
+        pdf_buffer = io.BytesIO()
+
+        doc = SimpleDocTemplate(
+            pdf_buffer
+        )
+
+        data = [
+            list(sales.columns)
+        ] + sales.astype(str).values.tolist()
+
+
+        table = Table(data)
+
+
+        doc.build(
+            [table]
+        )
+
+
+        st.download_button(
+            label="📄 Download Sales PDF",
+            data=pdf_buffer.getvalue(),
+            file_name="sales_report.pdf",
+            mime="application/pdf"
         )
 
 

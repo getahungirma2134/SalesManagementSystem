@@ -1,5 +1,13 @@
 import streamlit as st
+import hashlib
 from database import get_connection
+
+
+def hash_password(password):
+    return hashlib.sha256(
+        password.encode()
+    ).hexdigest()
+
 
 
 def login(username, password):
@@ -18,7 +26,7 @@ def login(username, password):
         """,
         (
             username,
-            password
+            hash_password(password)
         )
     )
 

@@ -66,3 +66,80 @@ elif st.session_state.role == "Employee":
 
 else:
     st.error("Unknown role")
+    # =====================
+# CHANGE PASSWORD
+# =====================
+
+st.subheader("🔐 Change Password")
+
+old_password = st.text_input(
+    "Old Password",
+    type="password"
+)
+
+new_password = st.text_input(
+    "New Password",
+    type="password"
+)
+
+confirm_password = st.text_input(
+    "Confirm Password",
+    type="password"
+)
+
+
+if st.button("Change Password"):
+
+    conn = get_connection()
+    cursor = conn.cursor()
+
+    cursor.execute(
+        """
+        SELECT *
+        FROM Users
+        WHERE Username=?
+        AND Password=?
+        """,
+        (
+            st.session_state.username,
+            old_password
+        )
+    )
+
+    user = cursor.fetchone()
+
+
+    if user:
+
+        if new_password == confirm_password:
+
+            cursor.execute(
+                """
+                UPDATE Users
+                SET Password=?
+                WHERE Username=?
+                """,
+                (
+                    new_password,
+                    st.session_state.username
+                )
+            )
+
+            conn.commit()
+
+            st.success(
+                "Password Changed ✅"
+            )
+
+        else:
+            st.error(
+                "New passwords do not match"
+            )
+
+    else:
+        st.error(
+            "Old password incorrect"
+        )
+
+
+    conn.close()
