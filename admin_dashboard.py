@@ -421,37 +421,45 @@ def admin_dashboard():
     st.subheader("🔐 Reset Employee Password")
 
 
-    if len(employees) > 0:
+    users = pd.read_sql(
+        """
+        SELECT EmployeeID, Username
+        FROM Users
+        WHERE Role='Employee'
+        """,
+        conn
+    )
 
 
-        employee_choice = st.selectbox(
-            "Select Employee",
-            employees["FullName"],
-            key="reset_employee_select"
+    if len(users) > 0:
+
+
+        selected_username = st.selectbox(
+            "Select Employee Username",
+            users["Username"],
+            key="reset_username"
         )
 
 
-        reset_id = employees[
-            employees["FullName"] == employee_choice
+        reset_id = users[
+            users["Username"] == selected_username
         ]["EmployeeID"].iloc[0]
 
 
-
-        employee_new_password = st.text_input(
-            "Employee New Password",
+        new_password = st.text_input(
+            "New Password",
             type="password",
-            key="employee_password_reset_input"
+            key="employee_reset_password"
         )
 
 
-
         if st.button(
-            "Reset Employee Password",
-            key="employee_reset_button"
+            "Reset Password",
+            key="reset_password_btn"
         ):
 
 
-            if employee_new_password:
+            if new_password:
 
 
                 cursor.execute(
@@ -461,7 +469,7 @@ def admin_dashboard():
                     WHERE EmployeeID=?
                     """,
                     (
-                        employee_new_password,
+                        new_password,
                         reset_id
                     )
                 )
@@ -471,7 +479,7 @@ def admin_dashboard():
 
 
                 st.success(
-                    "Employee Password Reset ✅"
+                    f"{selected_username} Password Reset ✅"
                 )
 
 
