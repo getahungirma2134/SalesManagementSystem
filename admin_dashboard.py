@@ -216,19 +216,21 @@ def admin_dashboard():
 
 
         st.download_button(
-            label="📥 Download Sales Excel",
-            data=buffer.getvalue(),
-            file_name="sales_report.xlsx",
-            mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-        )
+    label="📥 Download Sales Excel",
+    data=buffer.getvalue(),
+    file_name="sales_report.xlsx",
+    mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    key="excel_download"
+)
 
 
-        st.download_button(
-            label="📄 Download Sales PDF",
-            data=sales.to_csv(index=False),
-            file_name="sales_report.pdf",
-            mime="application/pdf"
-        )
+       st.download_button(
+    label="📄 Download Sales PDF",
+    data=sales.to_csv(index=False),
+    file_name="sales_report.pdf",
+    mime="application/pdf",
+    key="pdf_download"
+)
 
 
     # =====================
