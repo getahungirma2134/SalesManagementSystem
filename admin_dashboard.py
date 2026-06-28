@@ -366,10 +366,9 @@ def admin_dashboard():
 
 
 
-    # =====================
+        # =====================
     # DELETE EMPLOYEE
     # =====================
-
 
     st.subheader("🗑️ Delete Employee")
 
@@ -413,8 +412,7 @@ def admin_dashboard():
 
 
 
-    conn.close()
-    # =====================
+        # =====================
     # RESET EMPLOYEE PASSWORD
     # =====================
 
@@ -425,35 +423,57 @@ def admin_dashboard():
 
     if len(employees) > 0:
 
+
         reset_id = st.selectbox(
             "Select Employee",
             employees["EmployeeID"],
-            key="reset_password"
+            key="reset_employee_select"
         )
 
 
-        new_password = st.text_input(
-            "New Password",
-            type="password"
+        employee_new_password = st.text_input(
+            "Employee New Password",
+            type="password",
+            key="employee_password_reset_input"
         )
 
 
-        if st.button("Reset Password"):
+        if st.button(
+            "Reset Employee Password",
+            key="employee_reset_button"
+        ):
 
-            cursor.execute(
-                """
-                UPDATE Users
-                SET Password=?
-                WHERE EmployeeID=?
-                """,
-                (
-                    new_password,
-                    reset_id
+
+            if employee_new_password:
+
+
+                cursor.execute(
+                    """
+                    UPDATE Users
+                    SET Password=?
+                    WHERE EmployeeID=?
+                    """,
+                    (
+                        employee_new_password,
+                        reset_id
+                    )
                 )
-            )
 
-            conn.commit()
 
-            st.success(
-                "Employee Password Reset ✅"
-            )
+                conn.commit()
+
+
+                st.success(
+                    "Employee Password Reset ✅"
+                )
+
+
+            else:
+
+                st.warning(
+                    "Enter new password"
+                )
+
+
+
+    conn.close()
