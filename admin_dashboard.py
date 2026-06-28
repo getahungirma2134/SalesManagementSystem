@@ -431,7 +431,6 @@ users_df = pd.read_sql(
 st.dataframe(users_df)
 
 
-
 if len(users_df) > 0:
 
     selected_user = st.selectbox(
@@ -468,87 +467,64 @@ if len(users_df) > 0:
         conn.commit()
 
         st.success(
-            f"{selected_user} role updated ✅"
+            "Role Updated ✅"
         )
 
 
+# =====================
+# RESET PASSWORD
+# =====================
+
+st.divider()
+
+st.subheader("🔐 Reset Employee Password")
+
+
+employee_users = pd.read_sql(
+    """
+    SELECT Username
+    FROM Users
+    WHERE Role='Employee'
+    """,
+    conn
+)
+
+
+if len(employee_users) > 0:
+
+    reset_user = st.selectbox(
+        "Select Employee Username",
+        employee_users["Username"],
+        key="reset_user"
+    )
+
 
     if st.button(
-        "Delete User",
-        key="delete_user_btn"
+        "Reset Password",
+        key="reset_btn"
     ):
 
         cursor.execute(
             """
-            DELETE FROM Users
+            UPDATE Users
+            SET Password=?
             WHERE Username=?
             """,
-            (selected_user,)
+            (
+                "1234",
+                reset_user
+            )
         )
-
 
         conn.commit()
 
-
-        st.warning(
-            f"{selected_user} deleted 🗑️"
+        st.success(
+            f"{reset_user} password reset to 1234 ✅"
         )
-
-
-        # =====================
-    # RESET EMPLOYEE PASSWORD
-    # =====================
-
-    st.divider()
-
-    st.subheader("🔐 Reset Employee Password")
-
-
-    users = pd.read_sql(
-        """
-        SELECT Username
-        FROM Users
-        WHERE Role='Employee'
-        """,
-        conn
-    )
-
-
-    if len(users) > 0:
-
-        selected_username = st.selectbox(
-            "Select Employee Username",
-            users["Username"],
-            key="reset_username"
-        )
-
-
-        if st.button(
-            "Reset Password",
-            key="reset_password_btn"
-        ):
-
-            cursor.execute(
-                """
-                UPDATE Users
-                SET Password=?
-                WHERE Username=?
-                """,
-                (
-                    "1234",
-                    selected_username
-                )
-            )
-
-            conn.commit()
-
-            st.success(
-                "Password reset to 1234 ✅"
-            )
 
 
 # =====================
-# CLOSE DATABASE
+# CLOSE CONNECTION
 # =====================
 
 conn.close()
