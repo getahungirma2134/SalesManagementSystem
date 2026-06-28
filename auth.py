@@ -12,8 +12,8 @@ def login(username, password):
         """
         SELECT Username, Role, EmployeeID
         FROM Users
-        WHERE Username=?
-        AND Password=?
+        WHERE Username = ?
+        AND Password = ?
         """,
         (
             username.strip(),
@@ -27,7 +27,7 @@ def login(username, password):
     conn.close()
 
 
-    if user:
+    if user is not None:
 
         st.session_state.login = True
         st.session_state.username = user[0]

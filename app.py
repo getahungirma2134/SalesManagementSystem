@@ -20,11 +20,7 @@ st.set_page_config(
 conn = get_connection()
 cursor = conn.cursor()
 
-st.write(
-    cursor.execute(
-        "SELECT Username, Password, Role FROM Users"
-    ).fetchall()
-)
+
 
 conn.close()
 
