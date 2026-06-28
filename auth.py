@@ -7,6 +7,7 @@ def login(username, password):
     conn = get_connection()
     cursor = conn.cursor()
 
+
     cursor.execute(
         """
         SELECT Username, Role, EmployeeID
@@ -19,6 +20,7 @@ def login(username, password):
             password.strip()
         )
     )
+
 
     user = cursor.fetchone()
 
@@ -36,3 +38,12 @@ def login(username, password):
 
 
     return False
+
+
+
+def logout():
+
+    st.session_state.login = False
+    st.session_state.username = ""
+    st.session_state.role = ""
+    st.session_state.employee_id = None
