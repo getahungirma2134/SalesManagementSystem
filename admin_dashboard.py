@@ -413,57 +413,55 @@ def admin_dashboard():
 
 
     # =====================
-# RESET EMPLOYEE PASSWORD
-# =====================
+    # RESET EMPLOYEE PASSWORD
+    # =====================
 
-st.divider()
+    st.divider()
 
-st.subheader("🔐 Reset Employee Password")
-
-
-users = pd.read_sql(
-    """
-    SELECT Username
-    FROM Users
-    WHERE Role='Employee'
-    """,
-    conn
-)
+    st.subheader("🔐 Reset Employee Password")
 
 
-if len(users) > 0:
-
-    selected_username = st.selectbox(
-        "Select Employee Username",
-        users["Username"],
-        key="reset_username"
+    users = pd.read_sql(
+        """
+        SELECT Username
+        FROM Users
+        WHERE Role='Employee'
+        """,
+        conn
     )
 
 
-    if st.button(
-        "Reset Password",
-        key="reset_password_btn"
-    ):
+    if len(users) > 0:
 
-        cursor.execute(
-            """
-            UPDATE Users
-            SET Password=?
-            WHERE Username=?
-            """,
-            (
-                "1234",
-                selected_username
+        selected_username = st.selectbox(
+            "Select Employee Username",
+            users["Username"],
+            key="reset_username"
+        )
+
+
+        if st.button(
+            "Reset Password",
+            key="reset_password_btn"
+        ):
+
+            cursor.execute(
+                """
+                UPDATE Users
+                SET Password=?
+                WHERE Username=?
+                """,
+                (
+                    "1234",
+                    selected_username
+                )
             )
-        )
 
+            conn.commit()
 
-        conn.commit()
-
-
-        st.success(
-            f"{selected_username} password reset to 1234 ✅"
-        )
+            st.success(
+                "Password reset to 1234 ✅"
+            )
 
 
 
