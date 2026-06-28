@@ -196,79 +196,49 @@ def admin_dashboard():
         "text/csv"
     )
     # =====================
-# EXPORT SALES
-# =====================
-
-if len(sales) > 0:
-
-    buffer = io.BytesIO()
-
-    with pd.ExcelWriter(
-        buffer,
-        engine="openpyxl"
-    ) as writer:
-
-        sales.to_excel(
-            writer,
-            index=False,
-            sheet_name="Sales"
-        )
-
-
-    st.download_button(
-        label="📥 Download Sales Excel",
-        data=buffer.getvalue(),
-        file_name="sales_report.xlsx",
-        mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-        key="excel_download"
-    )
-
-
-    st.download_button(
-        label="📄 Download Sales PDF",
-        data=sales.to_csv(index=False),
-        file_name="sales_report.pdf",
-        mime="application/pdf",
-        key="pdf_download"
-    )
-
-
-    # =====================
-    # PDF EXPORT
+    # EXPORT SALES
     # =====================
 
     if len(sales) > 0:
 
-        pdf_buffer = io.BytesIO()
-
-        doc = SimpleDocTemplate(
-            pdf_buffer
-        )
-
-        data = [
-            list(sales.columns)
-        ] + sales.astype(str).values.tolist()
+        buffer = io.BytesIO()
 
 
-        table = Table(data)
+        with pd.ExcelWriter(
+            buffer,
+            engine="openpyxl"
+        ) as writer:
+
+            sales.to_excel(
+                writer,
+                index=False,
+                sheet_name="Sales"
+            )
 
 
-        doc.build(
-            [table]
+        st.download_button(
+            label="📥 Download Sales Excel",
+            data=buffer.getvalue(),
+            file_name="sales_report.xlsx",
+            mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            key="excel_download"
         )
 
 
         st.download_button(
             label="📄 Download Sales PDF",
-            data=pdf_buffer.getvalue(),
+            data=sales.to_csv(index=False),
             file_name="sales_report.pdf",
-            mime="application/pdf"
+            mime="application/pdf",
+            key="pdf_download"
         )
+
 
 
     # =====================
     # SALES SUMMARY
     # =====================
+
     if len(sales) > 0:
 
         col1, col2 = st.columns(2)
@@ -327,7 +297,6 @@ if len(sales) > 0:
                 "Employee"
             )["TotalSales"]
         )
-
 
 
         st.subheader(
