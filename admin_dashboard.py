@@ -1,6 +1,7 @@
 import streamlit as st
 import pandas as pd
-
+import datetime
+import io
 from database import get_connection
 
 
@@ -8,21 +9,21 @@ def admin_dashboard():
 
     st.title("👑 Admin Dashboard")
 
-
     conn = get_connection()
     cursor = conn.cursor()
 
 
+    # =====================
     # CREATE EMPLOYEE
+    # =====================
 
     st.subheader("👤 Create Employee")
-
 
     name = st.text_input("Employee Name")
 
     department = st.selectbox(
         "Department",
-        ["IT","Finance","Sales"]
+        ["IT", "Finance", "Sales"]
     )
 
     username = st.text_input("Username")
@@ -35,62 +36,74 @@ def admin_dashboard():
 
     if st.button("Create Employee"):
 
+        if name and username and password:
 
-        cursor.execute(
-            """
-            INSERT INTO Employees
-            (FullName, Department)
-            OUTPUT INSERTED.EmployeeID
-            VALUES (?,?)
-            """,
-            (
-                name,
-                department
+            cursor.execute(
+                """
+                INSERT INTO Employees
+                (FullName, Department)
+                VALUES (?,?)
+                """,
+                (
+                    name,
+                    department
+                )
             )
-        )
+
+            conn.commit()
+
+            employee_id = cursor.lastrowid
 
 
-        emp_id = cursor.fetchone()[0]
-
-
-        cursor.execute(
-            """
-            INSERT INTO Users
-            (Username, Password, Role, EmployeeID)
-            VALUES (?,?,?,?)
-            """,
-            (
-                username,
-                password,
-                "Employee",
-                emp_id
+            cursor.execute(
+                """
+                INSERT INTO Users
+                (Username, Password, Role, EmployeeID)
+                VALUES (?,?,?,?)
+                """,
+                (
+                    username,
+                    password,
+                    "Employee",
+                    employee_id
+                )
             )
-        )
 
+            conn.commit()
 
-        conn.commit()
+            st.success(
+                "Employee Created ✅"
+            )
 
-
-        st.success("Employee Created ✅")
-
+        else:
+            st.warning(
+                "Fill all fields"
+            )
 
 
     st.divider()
 
 
+
     # =====================
-    # SEARCH EMPLOYEE
+    # EMPLOYEE LIST
     # =====================
 
-    st.subheader("🔍 Search Employee")
+    st.subheader("📋 Employees List")
+
 
     employees = pd.read_sql(
-        "SELECT * FROM Employees",
+        """
+        SELECT *
+        FROM Employees
+        ORDER BY EmployeeID DESC
+        """,
         conn
     )
 
+
     search = st.text_input(
-        "Search by name"
+        "🔍 Search Employee"
     )
 
 
@@ -108,43 +121,46 @@ def admin_dashboard():
 
     st.dataframe(
         employees,
-        width="stretch"
+        use_container_width=True
     )
 
 
-    # =====================
-    # DATE FILTER
+    st.divider()
+
+
+
+        # =====================
+    # SALES FILTER
     # =====================
 
     st.subheader("📅 Filter Sales")
+
 
     col1, col2 = st.columns(2)
 
 
     with col1:
+
         start_date = st.date_input(
-            "Start Date"
+            "Start Date",
+            datetime.date(2026,6,27)
         )
 
 
     with col2:
+
         end_date = st.date_input(
-            "End Date"
+            "End Date",
+            datetime.date.today()
         )
-
-
-    # =====================
-    # SALES
-    # =====================
-
-    st.subheader("📊 All Sales")
 
 
     sales = pd.read_sql(
         """
         SELECT *
         FROM Sales
-        WHERE SaleDate BETWEEN ? AND ?
+        WHERE SaleDate
+        BETWEEN ? AND ?
         ORDER BY SaleDate DESC
         """,
         conn,
@@ -155,40 +171,95 @@ def admin_dashboard():
     )
 
 
-    st.dataframe(
-        sales,
-        width="stretch"
+    st.subheader(
+        "📊 All Sales"
     )
 
 
+    st.write(
+        "Sales rows:",
+        len(sales)
+    )
+
+
+    st.dataframe(
+        sales,
+        use_container_width=True
+    )
+
+
+    st.download_button(
+        "📥 Download Sales CSV",
+        sales.to_csv(index=False),
+        "sales.csv",
+        "text/csv"
+    )
+    # =====================
+    # EXPORT SALES EXCEL
+    # =====================
+
+    if True:
+
+        buffer = io.BytesIO()
+
+        with pd.ExcelWriter(
+            buffer,
+            engine="openpyxl"
+        ) as writer:
+
+            sales.to_excel(
+                writer,
+                index=False,
+                sheet_name="Sales"
+            )
+
+        st.download_button(
+            label="📥 Download Sales Excel",
+            data=buffer.getvalue(),
+            file_name="sales_report.xlsx",
+            mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+        )
+
+
+    # =====================
+    # SALES SUMMARY
+    # =====================
     if len(sales) > 0:
 
-        col1,col2 = st.columns(2)
+        col1, col2 = st.columns(2)
 
 
         with col1:
+
             st.metric(
-                "Total Sales",
+                "💰 Total Sales",
                 sales["Sales"].sum()
             )
 
 
         with col2:
+
             st.metric(
-                "Total Profit",
+                "📈 Total Profit",
                 sales["Profit"].sum()
             )
 
 
+
+    st.divider()
+
+
+
     # =====================
-    # CHARTS
+    # SALES CHART
     # =====================
 
     if len(sales) > 0:
 
+
         chart = pd.read_sql(
             """
-            SELECT 
+            SELECT
                 E.FullName AS Employee,
                 SUM(S.Sales) AS TotalSales,
                 SUM(S.Profit) AS TotalProfit
@@ -201,18 +272,131 @@ def admin_dashboard():
         )
 
 
-        st.subheader("📊 Sales Chart")
+        st.subheader(
+            "📊 Sales Chart"
+        )
+
 
         st.bar_chart(
-            chart.set_index("Employee")["TotalSales"]
+            chart.set_index(
+                "Employee"
+            )["TotalSales"]
         )
 
 
-        st.subheader("📈 Profit Chart")
+
+        st.subheader(
+            "📈 Profit Chart"
+        )
+
 
         st.line_chart(
-            chart.set_index("Employee")["TotalProfit"]
+            chart.set_index(
+                "Employee"
+            )["TotalProfit"]
         )
+
+
+    # =====================
+    # UPDATE EMPLOYEE
+    # =====================
+
+    st.divider()
+
+    st.subheader("✏️ Update Employee")
+
+
+    if len(employees) > 0:
+
+        selected_id = st.selectbox(
+            "Select Employee ID",
+            employees["EmployeeID"]
+        )
+
+
+        new_name = st.text_input(
+            "New Name"
+        )
+
+
+        new_department = st.selectbox(
+            "New Department",
+            ["IT","Finance","Sales"]
+        )
+
+
+        if st.button("Update Employee"):
+
+
+            cursor.execute(
+                """
+                UPDATE Employees
+                SET FullName=?,
+                    Department=?
+                WHERE EmployeeID=?
+                """,
+                (
+                    new_name,
+                    new_department,
+                    selected_id
+                )
+            )
+
+
+            conn.commit()
+
+
+            st.success(
+                "Employee Updated ✅"
+            )
+
+
+
+    # =====================
+    # DELETE EMPLOYEE
+    # =====================
+
+
+    st.subheader("🗑️ Delete Employee")
+
+
+    if len(employees) > 0:
+
+        delete_id = st.selectbox(
+            "Employee to delete",
+            employees["EmployeeID"],
+            key="delete"
+        )
+
+
+        if st.button("Delete Employee"):
+
+
+            cursor.execute(
+                """
+                DELETE FROM Users
+                WHERE EmployeeID=?
+                """,
+                (delete_id,)
+            )
+
+
+            cursor.execute(
+                """
+                DELETE FROM Employees
+                WHERE EmployeeID=?
+                """,
+                (delete_id,)
+            )
+
+
+            conn.commit()
+
+
+            st.warning(
+                "Employee Deleted 🗑️"
+            )
+
 
 
     conn.close()
