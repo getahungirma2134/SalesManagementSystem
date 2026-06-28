@@ -415,47 +415,45 @@ def admin_dashboard():
 
     conn.close()
     # =====================
-# RESET EMPLOYEE PASSWORD
-# =====================
+    # RESET EMPLOYEE PASSWORD
+    # =====================
 
-st.divider()
+    st.divider()
 
-st.subheader("🔐 Reset Employee Password")
-
-
-if len(employees) > 0:
-
-    reset_id = st.selectbox(
-        "Select Employee",
-        employees["EmployeeID"],
-        key="reset_password"
-    )
+    st.subheader("🔐 Reset Employee Password")
 
 
-    new_password = st.text_input(
-        "New Password",
-        type="password"
-    )
+    if len(employees) > 0:
+
+        reset_id = st.selectbox(
+            "Select Employee",
+            employees["EmployeeID"],
+            key="reset_password"
+        )
 
 
-    if st.button("Reset Password"):
+        new_password = st.text_input(
+            "New Password",
+            type="password"
+        )
 
-        cursor.execute(
-            """
-            UPDATE Users
-            SET Password=?
-            WHERE EmployeeID=?
-            """,
-            (
-                new_password,
-                reset_id
+
+        if st.button("Reset Password"):
+
+            cursor.execute(
+                """
+                UPDATE Users
+                SET Password=?
+                WHERE EmployeeID=?
+                """,
+                (
+                    new_password,
+                    reset_id
+                )
             )
-        )
 
+            conn.commit()
 
-        conn.commit()
-
-
-        st.success(
-            "Employee Password Reset ✅"
-        )
+            st.success(
+                "Employee Password Reset ✅"
+            )
