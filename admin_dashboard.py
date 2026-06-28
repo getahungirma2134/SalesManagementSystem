@@ -367,47 +367,55 @@ def admin_dashboard():
 
 
     # =====================
-    # DELETE EMPLOYEE
+    # USER MANAGEMENT
     # =====================
 
-    st.subheader("🗑️ Delete Employee")
+    st.subheader("👥 User Management")
 
+    users = pd.read_sql(
+        "SELECT Username FROM Users",
+        conn
+    )
 
-    if len(employees) > 0:
+    if len(users) > 0:
 
-        delete_id = st.selectbox(
-            "Employee to delete",
-            employees["EmployeeID"],
-            key="delete"
+        reset_user = st.selectbox(
+            "Select User",
+            users["Username"],
+            key="reset_user"
+        )
+
+        new_password = st.text_input(
+            "New Password",
+            type="password",
+            key="new_password"
         )
 
 
-        if st.button("Delete Employee"):
-
-
-            cursor.execute(
-                """
-                DELETE FROM Users
-                WHERE EmployeeID=?
-                """,
-                (delete_id,)
-            )
-
+        if st.button(
+            "Reset Password",
+            key="reset_btn"
+        ):
 
             cursor.execute(
                 """
-                DELETE FROM Employees
-                WHERE EmployeeID=?
+                UPDATE Users
+                SET Password=?
+                WHERE Username=?
                 """,
-                (delete_id,)
+                (
+                    new_password,
+                    reset_user
+                )
             )
-
 
             conn.commit()
 
+            st.success("Password Reset")
 
-            st.warning(
-                "Employee Deleted 🗑️"
-            )
+
+    # =====================
+    # CLOSE DATABASE
+    # =====================
 
     conn.close()
