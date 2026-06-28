@@ -412,82 +412,66 @@ def admin_dashboard():
 
 
 
-        # =====================
-    # RESET EMPLOYEE PASSWORD
     # =====================
+# RESET EMPLOYEE PASSWORD
+# =====================
 
-    st.divider()
+st.divider()
 
-    st.subheader("🔐 Reset Employee Password")
+st.subheader("🔐 Reset Employee Password")
 
 
-    users = pd.read_sql(
-        """
-        SELECT EmployeeID, Username
-        FROM Users
-        WHERE Role='Employee'
-        """,
-        conn
+users = pd.read_sql(
+    """
+    SELECT EmployeeID, Username
+    FROM Users
+    WHERE Role='Employee'
+    """,
+    conn
+)
+
+
+if len(users) > 0:
+
+    selected_username = st.selectbox(
+        "Select Employee Username",
+        users["Username"],
+        key="reset_username"
     )
 
 
-    if len(users) > 0:
+    reset_id = users[
+        users["Username"] == selected_username
+    ]["EmployeeID"].iloc[0]
 
 
-        selected_username = st.selectbox(
-            "Select Employee Username",
-            users["Username"],
-            key="reset_username"
+    if st.button(
+        "Reset Password",
+        key="reset_password_btn"
+    ):
+
+        default_password = "1234"
+
+
+        cursor.execute(
+            """
+            UPDATE Users
+            SET Password=?
+            WHERE EmployeeID=?
+            """,
+            (
+                default_password,
+                reset_id
+            )
         )
 
 
-        reset_id = users[
-            users["Username"] == selected_username
-        ]["EmployeeID"].iloc[0]
+        conn.commit()
 
 
-        new_password = st.text_input(
-            "New Password",
-            type="password",
-            key="employee_reset_password"
+        st.success(
+            f"{selected_username} password reset to 1234 ✅"
         )
-
-
-        if st.button(
-            "Reset Password",
-            key="reset_password_btn"
-        ):
-
-
-            if new_password:
-
-
-                cursor.execute(
-                    """
-                    UPDATE Users
-                    SET Password=?
-                    WHERE EmployeeID=?
-                    """,
-                    (
-                        new_password,
-                        reset_id
-                    )
-                )
-
-
-                conn.commit()
-
-
-                st.success(
-                    f"{selected_username} Password Reset ✅"
-                )
-
-
-            else:
-
-                st.warning(
-                    "Enter new password"
-                )
 
 
 
