@@ -12,6 +12,24 @@ st.set_page_config(
     layout="wide"
 )
 
+
+# ==========================
+# DEBUG - CHECK USERS
+# ==========================
+
+conn = get_connection()
+cursor = conn.cursor()
+
+st.write(
+    cursor.execute(
+        "SELECT Username, Password, Role FROM Users"
+    ).fetchall()
+)
+
+conn.close()
+
+
+
 # ==========================
 # SESSION
 # ==========================
@@ -28,6 +46,8 @@ if "role" not in st.session_state:
 if "employee_id" not in st.session_state:
     st.session_state.employee_id = None
 
+
+
 # ==========================
 # LOGIN PAGE
 # ==========================
@@ -37,52 +57,104 @@ if not st.session_state.login:
     st.title("🔐 Sales Management System")
 
     username = st.text_input("Username")
-    password = st.text_input("Password", type="password")
+
+    password = st.text_input(
+        "Password",
+        type="password"
+    )
+
 
     if st.button("Login"):
 
         if login(username, password):
-            st.success("Login Successful ✅")
+
+            st.success(
+                "Login Successful ✅"
+            )
+
             st.rerun()
+
         else:
-            st.error("Invalid Username or Password ❌")
+
+            st.error(
+                "Invalid Username or Password ❌"
+            )
+
 
     st.stop()
+
+
 
 # ==========================
 # AFTER LOGIN
 # ==========================
 
-st.sidebar.success(f"Welcome {st.session_state.username}")
-st.sidebar.write("Role:", st.session_state.role)
+
+st.sidebar.success(
+    f"Welcome {st.session_state.username}"
+)
+
+st.sidebar.write(
+    "Role:",
+    st.session_state.role
+)
+
+
 
 if st.sidebar.button("🚪 Logout"):
+
     logout()
+
     st.rerun()
 
+
+
+# ==========================
+# DASHBOARD
+# ==========================
+
+
 if st.session_state.role == "Admin":
+
     admin_dashboard()
 
+
+
 elif st.session_state.role == "Employee":
+
     employee_dashboard()
 
+
+
 else:
-    st.error("Unknown role")
-    # =====================
+
+    st.error(
+        "Unknown role"
+    )
+
+
+
+# =====================
 # CHANGE PASSWORD
 # =====================
 
+
+st.divider()
+
 st.subheader("🔐 Change Password")
+
 
 old_password = st.text_input(
     "Old Password",
     type="password"
 )
 
+
 new_password = st.text_input(
     "New Password",
     type="password"
 )
+
 
 confirm_password = st.text_input(
     "Confirm Password",
@@ -90,10 +162,14 @@ confirm_password = st.text_input(
 )
 
 
+
 if st.button("Change Password"):
 
+
     conn = get_connection()
+
     cursor = conn.cursor()
+
 
     cursor.execute(
         """
@@ -108,12 +184,16 @@ if st.button("Change Password"):
         )
     )
 
+
     user = cursor.fetchone()
+
 
 
     if user:
 
+
         if new_password == confirm_password:
+
 
             cursor.execute(
                 """
@@ -127,18 +207,24 @@ if st.button("Change Password"):
                 )
             )
 
+
             conn.commit()
+
 
             st.success(
                 "Password Changed ✅"
             )
 
+
         else:
+
             st.error(
                 "New passwords do not match"
             )
 
+
     else:
+
         st.error(
             "Old password incorrect"
         )
