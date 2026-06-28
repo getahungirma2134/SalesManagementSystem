@@ -424,11 +424,17 @@ def admin_dashboard():
     if len(employees) > 0:
 
 
-        reset_id = st.selectbox(
+        employee_choice = st.selectbox(
             "Select Employee",
-            employees["EmployeeID"],
+            employees["FullName"],
             key="reset_employee_select"
         )
+
+
+        reset_id = employees[
+            employees["FullName"] == employee_choice
+        ]["EmployeeID"].iloc[0]
+
 
 
         employee_new_password = st.text_input(
@@ -436,6 +442,7 @@ def admin_dashboard():
             type="password",
             key="employee_password_reset_input"
         )
+
 
 
         if st.button(
