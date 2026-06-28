@@ -195,42 +195,42 @@ def admin_dashboard():
         "sales.csv",
         "text/csv"
     )
-        # =====================
-    # EXPORT SALES EXCEL
     # =====================
+# EXPORT SALES
+# =====================
 
-    if True:
+if len(sales) > 0:
 
-        buffer = io.BytesIO()
+    buffer = io.BytesIO()
 
-        with pd.ExcelWriter(
-            buffer,
-            engine="openpyxl"
-        ) as writer:
+    with pd.ExcelWriter(
+        buffer,
+        engine="openpyxl"
+    ) as writer:
 
-            sales.to_excel(
-                writer,
-                index=False,
-                sheet_name="Sales"
-            )
-
-
-        st.download_button(
-    label="📥 Download Sales Excel",
-    data=buffer.getvalue(),
-    file_name="sales_report.xlsx",
-    mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-    key="excel_download"
-)
+        sales.to_excel(
+            writer,
+            index=False,
+            sheet_name="Sales"
+        )
 
 
-       st.download_button(
-    label="📄 Download Sales PDF",
-    data=sales.to_csv(index=False),
-    file_name="sales_report.pdf",
-    mime="application/pdf",
-    key="pdf_download"
-)
+    st.download_button(
+        label="📥 Download Sales Excel",
+        data=buffer.getvalue(),
+        file_name="sales_report.xlsx",
+        mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        key="excel_download"
+    )
+
+
+    st.download_button(
+        label="📄 Download Sales PDF",
+        data=sales.to_csv(index=False),
+        file_name="sales_report.pdf",
+        mime="application/pdf",
+        key="pdf_download"
+    )
 
 
     # =====================
