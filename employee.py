@@ -1,6 +1,5 @@
 import streamlit as st
 import pandas as pd
-from datetime import date
 
 from database import get_connection
 
@@ -8,7 +7,6 @@ from database import get_connection
 def employee_dashboard():
 
     emp_id = st.session_state.employee_id
-
 
     st.title("👤 Employee Dashboard")
 
@@ -43,57 +41,150 @@ def employee_dashboard():
     st.write("Department:", dept)
 
 
+    # =====================
+    # VIEW STOCK
+    # =====================
 
-    st.subheader("➕ Add My Sale")
+    st.subheader("📦 Available Stock")
 
 
-    sales = st.number_input(
-        "Sales",
-        min_value=0
+    stock = pd.read_sql(
+        """
+        SELECT 
+        ProductName,
+        Quantity,
+        SellingPrice
+        FROM Products
+        """,
+        conn
     )
 
 
-    profit = st.number_input(
-        "Profit",
-        min_value=0
-    )
-
-
-    sale_date = st.date_input(
-        "Sale Date",
-        date.today()
-    )
+    st.dataframe(stock)
 
 
 
-    if st.button("Save Sale"):
+    # =====================
+    # MAKE SALE
+    # =====================
+
+    st.subheader("🛒 Make Sale")
 
 
-        cursor.execute(
-            """
-            INSERT INTO Sales
-            (
-            EmployeeID,
-            Sales,
-            Profit,
-            SaleDate
-            )
-            VALUES(?,?,?,?)
-            """,
-            (
-                emp_id,
-                sales,
-                profit,
-                sale_date
-            )
+
+    products = cursor.execute(
+        """
+        SELECT 
+        ProductID,
+        ProductName,
+        Quantity,
+        SellingPrice,
+        CostPrice
+        FROM Products
+        WHERE Quantity > 0
+        """
+    ).fetchall()
+
+
+
+    if products:
+
+
+        product = st.selectbox(
+            "Select Product",
+            products,
+            format_func=lambda x: x[1]
         )
 
 
-        conn.commit()
+        qty = st.number_input(
+            "Quantity",
+            min_value=1
+        )
 
-        st.success("Sale Saved Successfully ✅")
+
+        if st.button("Sell Product"):
 
 
+            if qty <= product[2]:
+
+
+                total = qty * product[3]
+
+
+                cost = product[4]
+
+                profit = (product[3] - cost) * qty
+
+
+
+                cursor.execute(
+    """
+    INSERT INTO Sales
+    (
+    EmployeeID,
+    EmployeeName,
+    ProductID,
+    Quantity,
+    Sales,
+    Profit,
+    SaleDate
+    )
+    VALUES(?,?,?,?,?,?,DATE('now'))
+    """,
+    (
+    emp_id,
+    name,
+    product[0],
+    qty,
+    total,
+    profit
+    )
+)
+
+
+
+                cursor.execute(
+                    """
+                    UPDATE Products
+                    SET Quantity = Quantity - ?
+                    WHERE ProductID=?
+                    """,
+                    (
+                    qty,
+                    product[0]
+                    )
+                )
+
+
+
+                conn.commit()
+
+
+                st.success(
+                    f"Sold Successfully ✅ Profit: {profit}"
+                )
+
+
+            else:
+
+                st.error(
+                    "Stock not enough ❌"
+                )
+
+
+
+    else:
+
+        st.info(
+            "No Products"
+        )
+
+
+
+    # =====================
+    # MY SALES
+    # =====================
 
     st.subheader("📊 My Sales")
 
@@ -112,12 +203,14 @@ def employee_dashboard():
     st.dataframe(df)
 
 
+
     if len(df) > 0:
 
         col1, col2 = st.columns(2)
 
 
         with col1:
+
             st.metric(
                 "💰 Total Sales",
                 df["Sales"].sum()
@@ -125,10 +218,12 @@ def employee_dashboard():
 
 
         with col2:
+
             st.metric(
                 "📈 Total Profit",
                 df["Profit"].sum()
             )
+
 
 
     conn.close()
