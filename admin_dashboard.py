@@ -1,8 +1,14 @@
 import streamlit as st
 import pandas as pd
-import datetime
+import datetime as dt
+from datetime import datetime
 import io
-from reportlab.platypus import SimpleDocTemplate, Table
+import random
+
+from reportlab.platypus import SimpleDocTemplate, Table, Paragraph, Spacer
+from reportlab.lib.styles import getSampleStyleSheet
+from reportlab.lib.pagesizes import letter
+
 from database import get_connection
 
 
@@ -144,7 +150,7 @@ def admin_dashboard():
 
         start_date = st.date_input(
             "Start Date",
-            datetime.date(2026,6,27)
+            dt.date(2026,6,27)
         )
 
 
@@ -152,7 +158,7 @@ def admin_dashboard():
 
         end_date = st.date_input(
             "End Date",
-            datetime.date.today()
+            dt.date.today()
         )
 
 
@@ -184,25 +190,19 @@ def admin_dashboard():
 
 
     st.dataframe(
-        sales,
-        use_container_width=True
-    )
-
-
-    st.download_button(
-        "📥 Download Sales CSV",
-        sales.to_csv(index=False),
-        "sales.csv",
-        "text/csv"
+    sales,
+    width="stretch"
     )
     # =====================
     # EXPORT SALES
     # =====================
 
+    st.subheader("📥 Export Reports")
+
+
     if len(sales) > 0:
 
         buffer = io.BytesIO()
-
 
         with pd.ExcelWriter(
             buffer,
@@ -217,22 +217,188 @@ def admin_dashboard():
 
 
         st.download_button(
-            label="📥 Download Sales Excel",
-            data=buffer.getvalue(),
-            file_name="sales_report.xlsx",
-            mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-            key="excel_download"
+            "📊 Download Excel (.xlsx)",
+            buffer.getvalue(),
+            "sales_report.xlsx",
+            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
         )
 
 
         st.download_button(
-            label="📄 Download Sales PDF",
-            data=sales.to_csv(index=False),
-            file_name="sales_report.pdf",
-            mime="application/pdf",
-            key="pdf_download"
+            "📑 Download CSV",
+            sales.to_csv(index=False),
+            "sales_report.csv",
+            "text/csv"
+        )
+    # =====================
+    # PDF REPORT
+    # =====================
+
+    if len(sales) > 0:
+
+        pdf_buffer = io.BytesIO()
+
+        doc = SimpleDocTemplate(
+            pdf_buffer
         )
 
+        elements = []
+
+        styles = getSampleStyleSheet()
+
+
+        elements.append(
+            Paragraph(
+                "Sales Report",
+                styles["Title"]
+            )
+        )
+
+        elements.append(
+            Spacer(1,12)
+        )
+
+
+        data = [
+            list(sales.columns)
+        ]
+
+
+        for row in sales.values.tolist():
+            data.append(row)
+
+
+        table = Table(data)
+
+        elements.append(table)
+
+
+        doc.build(elements)
+
+
+        pdf_buffer.seek(0)
+
+
+        st.download_button(
+            "📄 Download PDF Report",
+            pdf_buffer,
+            "sales_report.pdf",
+            "application/pdf",
+            key="pdf_report"
+        )
+    # =====================
+# RECEIPT STYLE INVOICE
+# =====================
+
+if len(sales) > 0:
+
+    invoice_buffer = io.BytesIO()
+
+    doc = SimpleDocTemplate(
+        invoice_buffer,
+        pagesize=letter
+    )
+
+    styles = getSampleStyleSheet()
+
+    content = []
+
+
+    invoice_no = datetime.now().strftime("%Y%m%d%H%M")
+
+
+    content.append(
+        Paragraph(
+            "🏪 SALES MANAGEMENT SYSTEM",
+            styles["Title"]
+        )
+    )
+
+
+    content.append(
+        Paragraph(
+            f"Invoice No: INV-{invoice_no}",
+            styles["Normal"]
+        )
+    )
+
+
+    content.append(
+        Paragraph(
+            f"Date: {datetime.now().strftime('%Y-%m-%d %H:%M')}",
+            styles["Normal"]
+        )
+    )
+
+
+    content.append(
+        Spacer(1,12)
+    )
+
+
+    invoice_data = [
+        [
+            "Product ID",
+            "Qty",
+            "Amount"
+        ]
+    ]
+
+
+    for row in sales.itertuples():
+
+        invoice_data.append(
+            [
+                str(row.ProductID),
+                str(row.Quantity),
+                str(row.Sales)
+            ]
+        )
+
+
+    invoice_data.append(
+        [
+            "",
+            "TOTAL",
+            str(sales["Sales"].sum())
+        ]
+    )
+
+
+    table = Table(invoice_data)
+
+    content.append(table)
+
+
+    content.append(
+        Spacer(1,20)
+    )
+
+
+    content.append(
+        Paragraph(
+            "Thank you for shopping with us 🙏",
+            styles["Heading2"]
+        )
+    )
+
+
+    doc.build(content)
+
+
+    invoice_buffer.seek(0)
+
+
+    st.download_button(
+        "🧾 Download Invoice Receipt",
+        invoice_buffer,
+        "invoice_receipt.pdf",
+        "application/pdf",
+        key="invoice_receipt"
+    )
+
+
+        
 
 
     # =====================
@@ -412,6 +578,10 @@ def admin_dashboard():
             conn.commit()
 
             st.success("Password Reset")
+
+
+
+
 
 
     # =====================
