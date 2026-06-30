@@ -287,115 +287,118 @@ def admin_dashboard():
             key="pdf_report"
         )
     # =====================
-# RECEIPT STYLE INVOICE
-# =====================
+    # RECEIPT STYLE INVOICE
+    # =====================
 
-if len(sales) > 0:
+    if len(sales) > 0:
 
-    invoice_buffer = io.BytesIO()
-
-    doc = SimpleDocTemplate(
-        invoice_buffer,
-        pagesize=letter
-    )
-
-    styles = getSampleStyleSheet()
-
-    content = []
+        invoice_buffer = io.BytesIO()
 
 
-    invoice_no = datetime.now().strftime("%Y%m%d%H%M")
-
-
-    content.append(
-        Paragraph(
-            "🏪 SALES MANAGEMENT SYSTEM",
-            styles["Title"]
+        doc = SimpleDocTemplate(
+            invoice_buffer,
+            pagesize=letter
         )
-    )
 
 
-    content.append(
-        Paragraph(
-            f"Invoice No: INV-{invoice_no}",
-            styles["Normal"]
+        styles = getSampleStyleSheet()
+
+
+        content = []
+
+
+        invoice_no = datetime.now().strftime("%Y%m%d%H%M")
+
+
+        content.append(
+            Paragraph(
+                "🏪 SALES MANAGEMENT SYSTEM",
+                styles["Title"]
+            )
         )
-    )
 
 
-    content.append(
-        Paragraph(
-            f"Date: {datetime.now().strftime('%Y-%m-%d %H:%M')}",
-            styles["Normal"]
+        content.append(
+            Paragraph(
+                f"Invoice No: INV-{invoice_no}",
+                styles["Normal"]
+            )
         )
-    )
 
 
-    content.append(
-        Spacer(1,12)
-    )
+        content.append(
+            Paragraph(
+                f"Date: {datetime.now().strftime('%Y-%m-%d %H:%M')}",
+                styles["Normal"]
+            )
+        )
 
 
-    invoice_data = [
-        [
-            "Product ID",
-            "Qty",
-            "Amount"
+        content.append(
+            Spacer(1,12)
+        )
+
+
+        invoice_data = [
+            [
+                "Product ID",
+                "Qty",
+                "Amount"
+            ]
         ]
-    ]
 
 
-    for row in sales.itertuples():
+        for row in sales.itertuples():
+
+            invoice_data.append(
+                [
+                    str(row.ProductID),
+                    str(row.Quantity),
+                    str(row.Sales)
+                ]
+            )
+
 
         invoice_data.append(
             [
-                str(row.ProductID),
-                str(row.Quantity),
-                str(row.Sales)
+                "",
+                "TOTAL",
+                str(sales["Sales"].sum())
             ]
         )
 
 
-    invoice_data.append(
-        [
-            "",
-            "TOTAL",
-            str(sales["Sales"].sum())
-        ]
-    )
+        table = Table(invoice_data)
+
+        content.append(table)
 
 
-    table = Table(invoice_data)
-
-    content.append(table)
-
-
-    content.append(
-        Spacer(1,20)
-    )
-
-
-    content.append(
-        Paragraph(
-            "Thank you for shopping with us 🙏",
-            styles["Heading2"]
+        content.append(
+            Spacer(1,20)
         )
-    )
 
 
-    doc.build(content)
+        content.append(
+            Paragraph(
+                "Thank you for shopping with us 🙏",
+                styles["Heading2"]
+            )
+        )
 
 
-    invoice_buffer.seek(0)
+        doc.build(content)
 
 
-    st.download_button(
-        "🧾 Download Invoice Receipt",
-        invoice_buffer,
-        "invoice_receipt.pdf",
-        "application/pdf",
-        key="invoice_receipt"
-    )
+        invoice_buffer.seek(0)
+
+
+        st.download_button(
+            "🧾 Download Invoice Receipt",
+            invoice_buffer,
+            "invoice_receipt.pdf",
+            "application/pdf",
+            key="invoice_receipt"
+        )
 
 
         
